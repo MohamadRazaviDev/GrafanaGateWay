@@ -1,0 +1,65 @@
+# Default values for grafana-gateway Helm chart
+
+replicaCount: 1
+
+image:
+  repository: grafana-gateway
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+config:
+  grafanaUrl: "http://grafana:3000"
+  listenAddr: ":8080"
+  logLevel: "info"
+
+auth:
+  enabled: true
+  # API key hashes — generate with: grafana-gateway --hash-key YOUR_KEY
+  apiKeys: []
+  #  - hash: "<sha256>"
+  #    user: "admin"
+  #    team: "platform"
+  #    roles: "admin"
+
+rateLimit:
+  enabled: true
+  requestsPerSec: 50
+  burst: 100
+
+audit:
+  enabled: true
+  output: "stdout"
+
+metrics:
+  enabled: true
+  path: "/metrics"
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

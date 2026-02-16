@@ -1,0 +1,31 @@
+# golangci-lint v2 configuration for Grafana Gateway
+version: "2"
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  default: standard
+  enable:
+    - bodyclose         # Check HTTP response body is closed
+    - misspell          # Find common misspellings
+    - unconvert         # Remove unnecessary type conversions
+    - prealloc          # Find slice declarations that could be preallocated
+
+  settings:
+    govet:
+      disable:
+        - fieldalignment  # Too noisy, minor perf impact
+
+formatters:
+  enable:
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/MohamadRazaviDev/GrafanaGateWay
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 10
