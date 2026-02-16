@@ -1,0 +1,89 @@
+# ─────────────────────────────────────────────────────────────
+# Grafana Gateway — Full Configuration Example
+# ─────────────────────────────────────────────────────────────
+# All values here can be overridden by environment variables.
+# See deploy/.env.example for the env var names.
+# ─────────────────────────────────────────────────────────────
+
+server:
+  listen_addr: ":8080"
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  shutdown_timeout: 15s
+
+grafana:
+  url: "http://localhost:3000"
+  auth_header_name: "X-WEBAUTH-USER"
+
+auth:
+  enabled: true
+  skip_paths:
+    - "/healthz"
+    - "/readyz"
+    - "/metrics"
+  api_keys:
+    # Generate hash: grafana-gateway --hash-key YOUR_SECRET_KEY
+    # NEVER put plaintext keys here.
+    - hash: "<sha256-hash-of-your-key>"
+      user: "admin"
+      team: "platform"
+      roles:
+        - "admin"
+    # - hash: "<sha256-hash-of-another-key>"
+    #   user: "sre-bot"
+    #   team: "sre"
+    #   roles:
+    #     - "viewer"
+
+policies:
+  # SRE team — full dashboard access, no admin
+  - name: "sre-full-access"
+    teams:
+      - "sre"
+    allow_paths:
+      - "/d/*"
+      - "/api/dashboards/*"
+      - "/api/datasources/*"
+      - "/api/search"
+      - "/api/annotations/*"
+      - "/"
+    deny_paths:
+      - "/api/admin/*"
+      - "/api/org/*"
+
+  # Dev team — read-only dashboard access
+  - name: "dev-readonly"
+    teams:
+      - "dev"
+    allow_paths:
+      - "/d/*"
+      - "/api/dashboards/*"
+      - "/api/search"
+      - "/"
+    allow_methods:
+      - "GET"
+
+  # Platform admins — full access including admin
+  - name: "platform-admin"
+    teams:
+      - "platform"
+    allow_paths:
+      - "/*"
+      - "/api/admin/*"
+
+rate_limit:
+  enabled: true
+  requests_per_sec: 50
+  burst: 100
+  per_user: true
+  per_ip: true
+  cleanup_interval: 5m
+
+audit:
+  enabled: true
+  output: "stdout"    # or "/var/log/gateway/audit.json"
+
+metrics:
+  enabled: true
+  path: "/metrics"

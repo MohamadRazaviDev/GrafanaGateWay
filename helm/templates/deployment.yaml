@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-gateway
+  labels:
+    app: grafana-gateway
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: grafana-gateway
+  template:
+    metadata:
+      labels:
+        app: grafana-gateway
+    spec:
+      containers:
+        - name: gateway
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: GRAFANA_URL
+              value: {{ .Values.config.grafanaUrl | quote }}
+            - name: GATEWAY_LISTEN_ADDR
+              value: {{ .Values.config.listenAddr | quote }}
+            - name: GATEWAY_LOG_LEVEL
+              value: {{ .Values.config.logLevel | quote }}
+            - name: GATEWAY_AUTH_ENABLED
+              value: {{ .Values.auth.enabled | quote }}
+            - name: GATEWAY_RATE_LIMIT_ENABLED
+              value: {{ .Values.rateLimit.enabled | quote }}
+            - name: GATEWAY_RATE_LIMIT_RPS
+              value: {{ .Values.rateLimit.requestsPerSec | quote }}
+            - name: GATEWAY_RATE_LIMIT_BURST
+              value: {{ .Values.rateLimit.burst | quote }}
+            - name: GATEWAY_AUDIT_ENABLED
+              value: {{ .Values.audit.enabled | quote }}
+            - name: GATEWAY_AUDIT_OUTPUT
+              value: {{ .Values.audit.output | quote }}
+            - name: GATEWAY_METRICS_ENABLED
+              value: {{ .Values.metrics.enabled | quote }}
+            {{- range $i, $key := .Values.auth.apiKeys }}
+            - name: GATEWAY_API_KEY_{{ $i }}_HASH
+              value: {{ $key.hash | quote }}
+            - name: GATEWAY_API_KEY_{{ $i }}_USER
+              value: {{ $key.user | quote }}
+            - name: GATEWAY_API_KEY_{{ $i }}_TEAM
+              value: {{ $key.team | quote }}
+            - name: GATEWAY_API_KEY_{{ $i }}_ROLES
+              value: {{ $key.roles | quote }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.httpGet.path }}
+              port: {{ .Values.livenessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbe.httpGet.path }}
+              port: {{ .Values.readinessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
