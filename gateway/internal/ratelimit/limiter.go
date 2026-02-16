@@ -9,8 +9,8 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/auth"
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/config"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/auth"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/config"
 )
 
 // Limiter provides per-user and per-IP rate limiting.

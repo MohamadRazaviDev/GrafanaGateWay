@@ -15,13 +15,13 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/audit"
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/auth"
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/config"
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/observability"
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/policy"
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/proxy"
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/ratelimit"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/audit"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/auth"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/config"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/observability"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/policy"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/proxy"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/ratelimit"
 )
 
 var (
@@ -75,6 +75,7 @@ func main() {
 
 	// Health checker
 	health := observability.NewHealthChecker()
+	health.SetGrafanaURL(cfg.Grafana.URL)
 
 	// Prometheus metrics
 	reg := prometheus.DefaultRegisterer
@@ -88,7 +89,7 @@ func main() {
 	}
 
 	// Build middleware chain (innermost first, outermost last)
-	handler := http.Handler(proxyHandler)
+	handler := proxyHandler
 
 	// Policy engine (if policies configured)
 	policyEngine := policy.NewEngine(cfg.Policies, logger)

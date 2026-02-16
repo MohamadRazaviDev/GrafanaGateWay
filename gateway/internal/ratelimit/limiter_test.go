@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/config"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/config"
 )
 
 func testLogger() *slog.Logger {

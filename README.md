@@ -38,7 +38,7 @@ A lightweight, cloud-native reverse proxy that sits in front of [Grafana](https:
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/MohamadRazaviDev/Grafana-Gateway.git
+git clone https://github.com/MohamadRazaviDev/GrafanaGateWay.git
 cd Grafana-Gateway
 ```
 
@@ -75,12 +75,18 @@ docker compose up -d
 # Health check
 curl http://localhost:8080/healthz
 
-# Access Grafana through the gateway (with API key)
-curl -H "Authorization: Bearer my-secret-api-key" http://localhost:8080/api/dashboards/home
+# Without API key → 401 Unauthorized
+curl http://localhost:8080/api/dashboards/home
+
+# With demo API key → Grafana response
+curl -H "Authorization: Bearer demo-api-key-change-me" http://localhost:8080/api/dashboards/home
 
 # Metrics
 curl http://localhost:8080/metrics
 ```
+
+> ⚠️ **The demo key `demo-api-key-change-me` is for local testing only.**
+> Generate your own key for production: `grafana-gateway --hash-key YOUR_SECRET_KEY`
 
 ### Optional: Enable Prometheus monitoring
 
@@ -99,6 +105,7 @@ All configuration is done via **environment variables** or a **YAML config file*
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `GATEWAY_LISTEN_ADDR` | `:8080` | Gateway listen address |
+| `GATEWAY_PUBLIC_URL` | `http://localhost:8080` | Public URL for Grafana `root_url` (critical for WebSocket Origin) |
 | `GRAFANA_URL` | `http://localhost:3000` | Grafana backend URL |
 | `GRAFANA_AUTH_HEADER_NAME` | `X-WEBAUTH-USER` | Header name for auth proxy |
 | `GATEWAY_AUTH_ENABLED` | `true` | Enable/disable authentication |
@@ -149,6 +156,20 @@ See [docs/architecture.md](docs/architecture.md) for detailed diagrams and reque
 ```
 Request ID → Metrics → Audit → Rate Limit → Auth → Policy → Reverse Proxy → Grafana
 ```
+
+### Grafana Live WebSocket Support
+
+Grafana Live uses WebSocket connections at `/api/live/`. The gateway detects
+`Connection: Upgrade` + `Upgrade: websocket` headers and establishes a
+bidirectional TCP tunnel between client and Grafana.
+
+**Important**: Grafana validates the `Origin` header against its `root_url`.
+Set `GATEWAY_PUBLIC_URL` to match how clients reach the gateway (e.g.,
+`http://localhost:8080` or `https://grafana.example.com`). This value is
+passed to Grafana as `GF_SERVER_ROOT_URL`.
+
+If you see WebSocket errors like "Origin not allowed", check that
+`GATEWAY_PUBLIC_URL` matches the URL in your browser.
 
 ## Project Structure
 

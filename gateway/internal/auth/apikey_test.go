@@ -3,7 +3,7 @@ package auth
 import (
 	"testing"
 
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/config"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/config"
 )
 
 func TestHashKey(t *testing.T) {

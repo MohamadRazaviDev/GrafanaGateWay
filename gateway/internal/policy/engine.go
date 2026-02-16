@@ -1,21 +1,35 @@
 package policy
 
 import (
+	"context"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"path"
 	"strings"
 
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/auth"
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/config"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/auth"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/config"
 )
+
+type contextKey string
+
+const DecisionKey contextKey = "gateway.policy_decision"
+
+// GetDecision retrieves the policy decision from the request context.
+func GetDecision(ctx context.Context) *Decision {
+	if d, ok := ctx.Value(DecisionKey).(*Decision); ok {
+		return d
+	}
+	return nil
+}
 
 // Engine evaluates authorization policies against incoming requests.
 type Engine struct {
-	policies       []config.Policy
-	defaultDeny    bool
-	blockedPaths   []string
-	logger         *slog.Logger
+	policies     []config.Policy
+	defaultDeny  bool
+	blockedPaths []string
+	logger       *slog.Logger
 }
 
 // Decision represents a policy evaluation result.
@@ -116,6 +130,10 @@ func (e *Engine) Middleware() func(http.Handler) http.Handler {
 
 			decision := e.Evaluate(r, identity)
 
+			// Store decision in context for audit logging
+			ctx := context.WithValue(r.Context(), DecisionKey, &decision)
+			r = r.WithContext(ctx)
+
 			if !decision.Allowed {
 				e.logger.Warn("request denied by policy",
 					"user", identity.User,
@@ -125,7 +143,12 @@ func (e *Engine) Middleware() func(http.Handler) http.Handler {
 					"policy", decision.PolicyName,
 					"reason", decision.Reason,
 				)
-				http.Error(w, `{"error":"forbidden","message":"`+decision.Reason+`"}`, http.StatusForbidden)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusForbidden)
+				_ = json.NewEncoder(w).Encode(map[string]string{
+					"error":   "forbidden",
+					"message": decision.Reason,
+				})
 				return
 			}
 

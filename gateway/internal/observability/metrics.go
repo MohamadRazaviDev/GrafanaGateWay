@@ -107,6 +107,10 @@ func normalizePath(p string) string {
 	case len(p) > 10 && p[:10] == "/api/live/":
 		return "/api/live/:channel"
 	default:
+		// Catch-all for /api/ paths to prevent label cardinality explosion
+		if len(p) > 5 && p[:5] == "/api/" {
+			return "/api/:other"
+		}
 		return p
 	}
 }

@@ -1,4 +1,4 @@
-module github.com/MohamadRazaviDev/Grafana-Gateway/gateway
+module github.com/MohamadRazaviDev/GrafanaGateWay/gateway
 
 go 1.22.0
 

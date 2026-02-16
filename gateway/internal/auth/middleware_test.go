@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/config"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/config"
 )
 
 func testLogger() *slog.Logger {

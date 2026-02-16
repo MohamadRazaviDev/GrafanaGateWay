@@ -25,7 +25,8 @@ auth:
   api_keys:
     # Generate hash: grafana-gateway --hash-key YOUR_SECRET_KEY
     # NEVER put plaintext keys here.
-    - hash: "<sha256-hash-of-your-key>"
+    # ⚠️ DEMO ONLY — plaintext: "demo-api-key-change-me"
+    - hash: "b9dc5273a9da14b105764d4791ecb93de3a9f268df50b5cef57d4cc8ddc73d0c"
       user: "admin"
       team: "platform"
       roles:

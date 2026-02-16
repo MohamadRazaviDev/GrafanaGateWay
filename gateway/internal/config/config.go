@@ -12,13 +12,13 @@ import (
 
 // Config holds all gateway configuration.
 type Config struct {
-	Server   ServerConfig   `yaml:"server"`
-	Grafana  GrafanaConfig  `yaml:"grafana"`
-	Auth     AuthConfig     `yaml:"auth"`
-	Policies []Policy       `yaml:"policies"`
+	Server    ServerConfig    `yaml:"server"`
+	Grafana   GrafanaConfig   `yaml:"grafana"`
+	Auth      AuthConfig      `yaml:"auth"`
+	Policies  []Policy        `yaml:"policies"`
 	RateLimit RateLimitConfig `yaml:"rate_limit"`
-	Audit    AuditConfig    `yaml:"audit"`
-	Metrics  MetricsConfig  `yaml:"metrics"`
+	Audit     AuditConfig     `yaml:"audit"`
+	Metrics   MetricsConfig   `yaml:"metrics"`
 }
 
 type ServerConfig struct {
@@ -30,40 +30,40 @@ type ServerConfig struct {
 }
 
 type GrafanaConfig struct {
-	URL             string `yaml:"url"`
-	AuthHeaderName  string `yaml:"auth_header_name"`
-	AuthHeaderUser  string `yaml:"auth_header_user"`
+	URL            string `yaml:"url"`
+	AuthHeaderName string `yaml:"auth_header_name"`
+	AuthHeaderUser string `yaml:"auth_header_user"`
 }
 
 type AuthConfig struct {
-	Enabled     bool      `yaml:"enabled"`
-	APIKeys     []APIKey  `yaml:"api_keys"`
-	SkipPaths   []string  `yaml:"skip_paths"`
+	Enabled   bool     `yaml:"enabled"`
+	APIKeys   []APIKey `yaml:"api_keys"`
+	SkipPaths []string `yaml:"skip_paths"`
 }
 
 type APIKey struct {
 	// SHA-256 hash of the actual key (never store plaintext)
-	Hash     string   `yaml:"hash"`
-	User     string   `yaml:"user"`
-	Team     string   `yaml:"team"`
-	Roles    []string `yaml:"roles"`
+	Hash  string   `yaml:"hash"`
+	User  string   `yaml:"user"`
+	Team  string   `yaml:"team"`
+	Roles []string `yaml:"roles"`
 }
 
 type Policy struct {
-	Name          string   `yaml:"name"`
-	Users         []string `yaml:"users"`
-	Teams         []string `yaml:"teams"`
-	AllowPaths    []string `yaml:"allow_paths"`
-	DenyPaths     []string `yaml:"deny_paths"`
-	AllowMethods  []string `yaml:"allow_methods"`
+	Name         string   `yaml:"name"`
+	Users        []string `yaml:"users"`
+	Teams        []string `yaml:"teams"`
+	AllowPaths   []string `yaml:"allow_paths"`
+	DenyPaths    []string `yaml:"deny_paths"`
+	AllowMethods []string `yaml:"allow_methods"`
 }
 
 type RateLimitConfig struct {
-	Enabled       bool    `yaml:"enabled"`
-	RequestsPerSec float64 `yaml:"requests_per_sec"`
-	Burst         int     `yaml:"burst"`
-	PerUser       bool    `yaml:"per_user"`
-	PerIP         bool    `yaml:"per_ip"`
+	Enabled         bool          `yaml:"enabled"`
+	RequestsPerSec  float64       `yaml:"requests_per_sec"`
+	Burst           int           `yaml:"burst"`
+	PerUser         bool          `yaml:"per_user"`
+	PerIP           bool          `yaml:"per_ip"`
 	CleanupInterval time.Duration `yaml:"cleanup_interval"`
 }
 

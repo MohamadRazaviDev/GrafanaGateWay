@@ -9,7 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/MohamadRazaviDev/Grafana-Gateway/gateway/internal/auth"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/auth"
+	"github.com/MohamadRazaviDev/GrafanaGateWay/gateway/internal/policy"
 )
 
 // Entry represents a single audit log entry.
@@ -103,17 +104,27 @@ func (l *Logger) Middleware() func(http.Handler) http.Handler {
 				team = identity.Team
 			}
 
+			policyDecision := ""
+			if d := policy.GetDecision(r.Context()); d != nil {
+				if d.Allowed {
+					policyDecision = "allowed:" + d.PolicyName
+				} else {
+					policyDecision = "denied:" + d.PolicyName
+				}
+			}
+
 			entry := Entry{
-				Timestamp:  time.Now().UTC().Format(time.RFC3339),
-				RequestID:  r.Header.Get("X-Request-ID"),
-				User:       user,
-				Team:       team,
-				ClientIP:   r.RemoteAddr,
-				Method:     r.Method,
-				Path:       r.URL.Path,
-				StatusCode: rec.statusCode,
-				LatencyMs:  latency,
-				UserAgent:  r.Header.Get("User-Agent"),
+				Timestamp:      time.Now().UTC().Format(time.RFC3339),
+				RequestID:      r.Header.Get("X-Request-ID"),
+				User:           user,
+				Team:           team,
+				ClientIP:       r.RemoteAddr,
+				Method:         r.Method,
+				Path:           r.URL.Path,
+				StatusCode:     rec.statusCode,
+				LatencyMs:      latency,
+				PolicyDecision: policyDecision,
+				UserAgent:      r.Header.Get("User-Agent"),
 			}
 
 			l.Log(entry)
