@@ -98,9 +98,9 @@ func normalizePath(p string) string {
 	switch {
 	case p == "/healthz" || p == "/readyz" || p == "/metrics":
 		return p
-	case len(p) > 3 && p[:3] == "/d/":
+	case len(p) >= 4 && p[:3] == "/d/":
 		return "/d/:uid"
-	case len(p) > 12 && p[:12] == "/api/admin/":
+	case len(p) > 11 && p[:11] == "/api/admin/":
 		return "/api/admin/:action"
 	case len(p) > 16 && p[:16] == "/api/dashboards/":
 		return "/api/dashboards/:action"

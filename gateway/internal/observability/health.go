@@ -35,7 +35,7 @@ func (h *HealthChecker) HealthzHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(healthResponse{Status: "ok"})
+		_ = json.NewEncoder(w).Encode(healthResponse{Status: "ok"})
 	}
 }
 
@@ -45,10 +45,10 @@ func (h *HealthChecker) ReadyzHandler() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		if h.IsReady() {
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(healthResponse{Status: "ready"})
+			_ = json.NewEncoder(w).Encode(healthResponse{Status: "ready"})
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			json.NewEncoder(w).Encode(healthResponse{Status: "not ready"})
+			_ = json.NewEncoder(w).Encode(healthResponse{Status: "not ready"})
 		}
 	}
 }

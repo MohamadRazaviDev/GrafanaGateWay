@@ -88,7 +88,7 @@ func main() {
 	}
 
 	// Build middleware chain (innermost first, outermost last)
-	var handler http.Handler = proxyHandler
+	handler := http.Handler(proxyHandler)
 
 	// Policy engine (if policies configured)
 	policyEngine := policy.NewEngine(cfg.Policies, logger)

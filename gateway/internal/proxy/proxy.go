@@ -94,14 +94,14 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request, target *url.URL, lo
 	if !ok {
 		logger.Error("websocket hijack not supported")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		backendConn.Close()
+		_ = backendConn.Close()
 		return
 	}
 
 	clientConn, _, err := hijacker.Hijack()
 	if err != nil {
 		logger.Error("websocket hijack failed", "error", err)
-		backendConn.Close()
+		_ = backendConn.Close()
 		return
 	}
 
@@ -112,8 +112,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request, target *url.URL, lo
 
 	if err := r.Write(backendConn); err != nil {
 		logger.Error("websocket write request failed", "error", err)
-		clientConn.Close()
-		backendConn.Close()
+		_ = clientConn.Close()
+		_ = backendConn.Close()
 		return
 	}
 
@@ -135,8 +135,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request, target *url.URL, lo
 
 	// Wait for one direction to finish, then close both
 	<-errc
-	clientConn.Close()
-	backendConn.Close()
+	_ = clientConn.Close()
+	_ = backendConn.Close()
 }
 
 func copyConn(dst, src net.Conn) (int64, error) {

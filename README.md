@@ -202,7 +202,15 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ## Development
 
+For full setup instructions (virtual environment, tooling, make targets), see **[DEVELOPMENT.md](DEVELOPMENT.md)**.
+
+Quick start:
+
 ```bash
+# Automated setup (creates isolated .venv, installs all tools)
+make setup
+source .activate-env.sh
+
 cd gateway
 
 # Run tests

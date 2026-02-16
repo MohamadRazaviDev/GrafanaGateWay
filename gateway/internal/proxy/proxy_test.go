@@ -13,7 +13,7 @@ func TestReverseProxy(t *testing.T) {
 	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Test-Backend", "grafana")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("grafana response"))
+		_, _ = w.Write([]byte("grafana response"))
 	}))
 	defer backend.Close()
 
@@ -38,7 +38,7 @@ func TestReverseProxy(t *testing.T) {
 func TestReverseProxyForwardsHeaders(t *testing.T) {
 	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := r.Header.Get("X-WEBAUTH-USER")
-		w.Write([]byte("user:" + user))
+		_, _ = w.Write([]byte("user:" + user))
 	}))
 	defer backend.Close()
 

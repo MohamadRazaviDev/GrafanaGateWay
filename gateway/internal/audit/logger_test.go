@@ -56,7 +56,7 @@ func TestMiddleware(t *testing.T) {
 
 	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		_, _ = w.Write([]byte("ok"))
 	})
 
 	handler := logger.Middleware()(next)
@@ -107,7 +107,7 @@ func TestResponseRecorder(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	var entry Entry
-	json.NewDecoder(&buf).Decode(&entry)
+	_ = json.NewDecoder(&buf).Decode(&entry)
 	if entry.StatusCode != http.StatusNotFound {
 		t.Errorf("expected 404, got %d", entry.StatusCode)
 	}

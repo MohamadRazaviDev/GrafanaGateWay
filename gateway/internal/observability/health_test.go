@@ -20,7 +20,7 @@ func TestHealthz(t *testing.T) {
 	}
 
 	var resp healthResponse
-	json.NewDecoder(rr.Body).Decode(&resp)
+	_ = json.NewDecoder(rr.Body).Decode(&resp)
 	if resp.Status != "ok" {
 		t.Errorf("expected ok, got %s", resp.Status)
 	}
@@ -53,7 +53,7 @@ func TestReadyzReady(t *testing.T) {
 	}
 
 	var resp healthResponse
-	json.NewDecoder(rr.Body).Decode(&resp)
+	_ = json.NewDecoder(rr.Body).Decode(&resp)
 	if resp.Status != "ready" {
 		t.Errorf("expected ready, got %s", resp.Status)
 	}
