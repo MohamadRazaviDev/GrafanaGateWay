@@ -82,8 +82,15 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request, target *url.URL, lo
 		RawQuery: r.URL.RawQuery,
 	}
 
+	// Dial backend — use TLS for HTTPS upstreams
 	dialer := &net.Dialer{Timeout: 10 * time.Second}
-	backendConn, err := dialer.Dial("tcp", target.Host)
+	var backendConn net.Conn
+	var err error
+	if target.Scheme == "https" {
+		backendConn, err = tls.DialWithDialer(dialer, "tcp", target.Host, &tls.Config{MinVersion: tls.VersionTLS12})
+	} else {
+		backendConn, err = dialer.Dial("tcp", target.Host)
+	}
 	if err != nil {
 		logger.Error("websocket dial failed", "target", backendURL.String(), "error", err)
 		http.Error(w, "Bad Gateway", http.StatusBadGateway)
@@ -105,10 +112,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request, target *url.URL, lo
 		return
 	}
 
-	// Forward the original request to backend
-	reqURL := *r.URL
-	reqURL.Host = target.Host
-	reqURL.Scheme = scheme
+	// Rewrite Host header to target host before forwarding
+	r.Host = target.Host
 
 	if err := r.Write(backendConn); err != nil {
 		logger.Error("websocket write request failed", "error", err)

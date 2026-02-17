@@ -1,271 +1,140 @@
 # Development Setup Guide
 
-This guide will help you set up a complete development environment for the Grafana Gateway project locally.
-
 ## Prerequisites
 
-You need to have these installed on your system:
+| Tool | Version | Required | Install |
+|------|---------|----------|---------|
+| **Go** | 1.22+ | ✅ Yes | [golang.org/dl](https://golang.org/dl/) |
+| **Docker** | 20+ | ✅ Yes | [docker.com](https://docs.docker.com/get-docker/) |
+| **Node.js** | 16+ | ❌ Optional | [nodejs.org](https://nodejs.org/) |
 
-- **Python 3.8+** - [Download](https://www.python.org/downloads/)
-- **Node.js 16+** - [Download](https://nodejs.org/)
-- **npm 7+** - Comes with Node.js
-- **Go 1.22+** (optional, for gateway development) - [Download](https://golang.org/dl/)
-
-## Quick Setup (Recommended)
-
-Run the automated setup script:
+## Quick Setup
 
 ```bash
+# Automated (installs Go tools + downloads deps)
 ./setup-dev-env.sh
-```
 
-This will:
-✅ Create a Python virtual environment (`.venv`)  
-✅ Install Python dev tools (ruff, black)  
-✅ Install Node.js dependencies  
-✅ Download Go modules  
-✅ Generate environment scripts  
-
-## Manual Setup
-
-### 1. Create Python Virtual Environment
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-### 2. Install Python Tools
-
-```bash
-pip install --upgrade pip
-pip install ruff black pylance
-```
-
-### 3. Install Node.js Dependencies
-
-```bash
-cd ui
-npm install
-cd ..
-```
-
-### 4. Download Go Dependencies
-
-```bash
+# Or manually
 cd gateway
 go mod download
-go mod tidy
 cd ..
+make install-tools
 ```
 
-### 5. Load Environment Variables
+## Daily Workflow
 
 ```bash
-set -a && source .env.local && set +a
-```
+# Run all pre-PR checks (format + lint + test + security)
+make check
 
-## Activate Environment
-
-After initial setup, activate your dev environment anytime with:
-
-```bash
-source .activate-env.sh
-```
-
-Or use Make:
-
-```bash
-make setup
-source .activate-env.sh
-```
-
-## Development Workflow
-
-### Running Tests
-
-```bash
-make test           # All tests (Go + TypeScript)
-make test-go        # Go tests only
-make test-ui        # TypeScript tests only
-```
-
-### Linting
-
-```bash
-make lint           # All linters (Go + Python + etc)
-make lint-go        # Go linting only  
-make lint-ui        # TypeScript linting only
-make lint-python    # Python tools only
-```
-
-### Formatting Code
-
-```bash
-make fmt            # Format all code
-make fmt-go         # Go formatting
-make fmt-ui         # TypeScript/UI formatting
-make fmt-python     # Python formatting
-```
-
-### Pre-commit Checks
-
-Run tests and linting together:
-
-```bash
-make check          # Lint + Test
-```
-
-### Cleaning Up
-
-```bash
-make clean          # Remove build artifacts and cache
-```
-
-## Project Structure
-
-```
-.
-├── gateway/               # Go backend
-│   ├── cmd/              # Entry points
-│   ├── internal/         # Core packages
-│   ├── go.mod            # Go dependencies
-│   └── Dockerfile        # Container image
-├── ui/                    # TypeScript/React frontend
-│   ├── components/       # React components
-│   ├── services/         # API services
-│   ├── package.json      # npm dependencies
-│   └── vite.config.ts    # Build config
-├── deploy/               # Docker Compose & configs
-├── helm/                 # Kubernetes Helm charts
-├── .venv/                # Python virtual environment (created by setup)
-├── .activate-env.sh      # Environment activation script (created by setup)
-├── .env.local            # Local env variables (created by setup)
-├── Makefile              # Build automation
-└── setup-dev-env.sh      # Automated setup script
-```
-
-## Environment Variables
-
-Key variables in `.env.local`:
-
-```bash
-# Gateway
-GATEWAY_LOG_LEVEL=debug
-GATEWAY_LISTEN_ADDR=:8080
-GRAFANA_URL=http://localhost:3000
-GATEWAY_AUTH_ENABLED=true
-GATEWAY_RATE_LIMIT_ENABLED=true
+# Individual commands
+make test       # go test -race ./...
+make lint       # golangci-lint
+make fmt        # gofmt + goimports
+make security   # govulncheck
 ```
 
 ## Building & Running
 
-### Build Gateway Binary
+### Build the Gateway
 
 ```bash
 cd gateway
 go build -o grafana-gateway ./cmd/grafana-gateway
 ```
 
-### Run Gateway with Example Config
+### Run Locally (dev mode)
 
 ```bash
-./grafana-gateway -config config.example.yaml
+GRAFANA_URL=http://localhost:3000 GATEWAY_AUTH_ENABLED=false ./grafana-gateway
 ```
 
-### Build UI
+### Run with Docker Compose
 
 ```bash
-cd ui
-npm run build
+cd deploy
+cp .env.example .env          # edit .env with your API key hash
+docker compose up -d           # gateway + Grafana + Prometheus
 ```
 
-## Virtual Environment Isolation
-
-Everything is contained in `.venv/`:
-- ✅ Doesn't conflict with other projects
-- ✅ Easy to delete: `rm -rf .venv`
-- ✅ Added to `.gitignore`
-- ✅ All tools installed locally
-
-To deactivate:
+### Hash an API Key
 
 ```bash
-deactivate
+cd gateway
+go run ./cmd/grafana-gateway --hash-key "my-secret-key"
+```
+
+## Project Structure
+
+```
+GrafanaGateWay/
+  gateway/                       # Go gateway service
+    cmd/grafana-gateway/         # CLI entry point
+    internal/
+      config/                    # YAML + env config loading
+      proxy/                     # Reverse proxy + WebSocket
+      auth/                      # API key validation + middleware
+      policy/                    # Authorization engine
+      ratelimit/                 # Token bucket rate limiter
+      audit/                     # Structured JSON audit logger
+      observability/             # Health checks + Prometheus metrics
+    Dockerfile                   # Multi-stage Docker build
+    config.example.yaml          # Full config example
+    .golangci.yml                # Linter configuration (v2)
+  deploy/
+    docker-compose.yml           # Grafana + Gateway + Prometheus
+    grafana/grafana.ini          # Grafana auth proxy config
+    .env.example                 # Environment variable template
+    prometheus.yml               # Prometheus scrape config
+  helm/                          # Kubernetes Helm chart
+  docs/
+    architecture.md              # Architecture diagrams
+    threat-model.md              # Security threat model
+  .github/workflows/ci.yml      # 5-stage CI pipeline
+  Makefile                       # Build automation
+```
+
+## Environment Variables
+
+Key variables for local development (set in `deploy/.env`):
+
+```bash
+GATEWAY_LOG_LEVEL=debug
+GATEWAY_LISTEN_ADDR=:8080
+GRAFANA_URL=http://localhost:3000
+GATEWAY_AUTH_ENABLED=true
+GATEWAY_RATE_LIMIT_ENABLED=true
+GATEWAY_AUDIT_ENABLED=true
+GATEWAY_METRICS_ENABLED=true
+```
+
+## CI/CD
+
+The GitHub Actions pipeline runs automatically on pushes and PRs:
+
+```bash
+# Reproduce CI locally
+make check          # format + lint + test + security
+make docker         # build Docker image
 ```
 
 ## Troubleshooting
 
-### Python not found
-```bash
-# Check Python installation
-python3 --version
-which python3
-```
-
 ### Go not found
-Go is optional. If you don't have it, you can still work on the UI/frontend.
-
-### Virtual environment not activated
 ```bash
-# Always run first:
-source .activate-env.sh
+go version          # should print go1.22+
+which go            # verify in PATH
 ```
 
-### Dependencies failed to install
+### Dependencies failed
 ```bash
-# Clear and reinstall
-rm -rf .venv ui/node_modules gateway/go.sum
-./setup-dev-env.sh
+cd gateway
+rm go.sum
+go mod tidy
 ```
 
-### Permission denied on setup script
+### Linter issues
 ```bash
-chmod +x setup-dev-env.sh
-./setup-dev-env.sh
+make install-tools  # reinstall golangci-lint
+make lint           # run linter
 ```
-
-## CI/CD Integration
-
-The Makefile also works in CI/CD pipelines:
-
-```bash
-make install-tools  # Install tools
-make check         # Run full validation
-```
-
-## Tips & Best Practices
-
-1. **Always activate before working:**
-   ```bash
-   source .activate-env.sh
-   ```
-
-2. **Use Make for consistency:**
-   ```bash
-   make fmt   # Format before committing
-   make check # Validate before pushing
-   ```
-
-3. **Keep virtual environment clean:**
-   - Don't modify `.venv` manually
-   - Recreate if issues: `rm -rf .venv && ./setup-dev-env.sh`
-
-4. **Update dependencies:**
-   ```bash
-   cd ui && npm update
-   cd ../gateway && go get -u ./...
-   ```
-
-## Support
-
-For issues with setup:
-1. Check this guide
-2. Review CI configuration in `.github/workflows/ci.yml`
-3. Open an issue with your error output
-
-## Next Steps
-
-- Run `make setup` to start
-- Read [architecture.md](docs/architecture.md) to understand the system
-- Check [SECURITY.md](SECURITY.md) for security guidelines

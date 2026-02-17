@@ -39,17 +39,19 @@ A lightweight, cloud-native reverse proxy that sits in front of [Grafana](https:
 
 ```bash
 git clone https://github.com/MohamadRazaviDev/GrafanaGateWay.git
-cd Grafana-Gateway
+cd GrafanaGateWay
 ```
 
 ### 2. Generate an API key hash
 
 ```bash
-# Using Docker
-docker run --rm grafana-gateway --hash-key "my-secret-api-key"
+# Build the gateway first, then hash a key
+cd gateway
+go run ./cmd/grafana-gateway --hash-key "my-secret-api-key"
 
-# Or if you have Go installed
-cd gateway && go run ./cmd/grafana-gateway --hash-key "my-secret-api-key"
+# Or using Docker (after building)
+cd deploy && docker compose build gateway
+docker compose run --rm gateway --hash-key "my-secret-api-key"
 ```
 
 ### 3. Configure environment
@@ -174,12 +176,12 @@ If you see WebSocket errors like "Origin not allowed", check that
 ## Project Structure
 
 ```
-Grafana-Gateway/
+GrafanaGateWay/
   gateway/                       # Go gateway service
     cmd/grafana-gateway/         # CLI entry point
     internal/
       config/                    # YAML + env config loading
-      proxy/                     # Reverse proxy + WebSocket
+      proxy/                     # Reverse proxy + WebSocket (ws + wss)
       auth/                      # API key validation + middleware
       policy/                    # Authorization engine
       ratelimit/                 # Token bucket rate limiter
@@ -187,7 +189,7 @@ Grafana-Gateway/
       observability/             # Health checks + Prometheus metrics
     Dockerfile                   # Multi-stage Docker build
     config.example.yaml          # Full config example
-  ui/                            # React admin dashboard (optional)
+    .golangci.yml                # Linter configuration (v2)
   deploy/
     docker-compose.yml           # Grafana + Gateway + Prometheus
     grafana/grafana.ini          # Grafana auth proxy config
@@ -197,7 +199,7 @@ Grafana-Gateway/
   docs/
     architecture.md              # Architecture diagrams
     threat-model.md              # Security threat model
-  .github/workflows/ci.yml      # CI pipeline
+  .github/workflows/ci.yml      # 5-stage CI pipeline
 ```
 
 ## Security
@@ -223,28 +225,19 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ## Development
 
-For full setup instructions (virtual environment, tooling, make targets), see **[DEVELOPMENT.md](DEVELOPMENT.md)**.
-
-Quick start:
+For full setup instructions, see **[DEVELOPMENT.md](DEVELOPMENT.md)**.
 
 ```bash
-# Automated setup (creates isolated .venv, installs all tools)
-make setup
-source .activate-env.sh
+# One-time setup (installs Go tools + downloads deps)
+./setup-dev-env.sh
 
+# Pre-PR gate (format + lint + test + security)
+make check
+
+# Build & run locally
 cd gateway
-
-# Run tests
-go test -race ./...
-
-# Build
 go build -o grafana-gateway ./cmd/grafana-gateway
-
-# Run locally (auth disabled for development)
 GRAFANA_URL=http://localhost:3000 GATEWAY_AUTH_ENABLED=false ./grafana-gateway
-
-# Hash an API key
-./grafana-gateway --hash-key "my-secret-key"
 ```
 
 ## License
