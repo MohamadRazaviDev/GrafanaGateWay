@@ -28,7 +28,7 @@ services:
       - gateway-net
 
   grafana:
-    image: grafana/grafana:11.4.0
+    image: grafana/grafana:12.3.3
     volumes:
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
       - grafana-data:/var/lib/grafana
