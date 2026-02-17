@@ -1,5 +1,0 @@
-{
-  "name": "Grafana Gateway Control Plane",
-  "description": "A sophisticated management interface for a Grafana reverse proxy service featuring token-based auth, rate limiting, caching, and AI-driven security analysis.",
-  "requestFramePermissions": []
-}
